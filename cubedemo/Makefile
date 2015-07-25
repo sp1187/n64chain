@@ -51,22 +51,20 @@ $(ROM_NAME).z64: $(ROM_NAME).elf
 
 $(ROM_NAME).elf: libn64 $(OBJFILES)
 	@echo "Building: $@"
-	$(CC) $(CFLAGS) $(OPTFLAGS) -Wl,-Map=$(ROM_NAME).map -nostdlib \
+	@$(CC) $(CFLAGS) $(OPTFLAGS) -Wl,-Map=$(ROM_NAME).map -nostdlib \
 		-T../libn64/rom.ld -o $@ $(OBJFILES) -L../libn64 -ln64
-
-src/graphics.o: src/graphics.S src/graphics.bin
-	@echo "Assembling: $<"
 
 #
 # Generic compilation/assembly targets.
 #
+src/graphics.o: src/graphics.S src/graphics.bin
 %.o: %.S
 	@echo "Assembling: $<"
 	@$(CC) $(CFLAGS) $(OPTFLAGS) -MMD -c $< -o $@
 
 %.o: %.c
 	@echo "Compiling: $<"
-	$(CC) $(CFLAGS) $(OPTFLAGS) -MMD -c $< -o $@
+	@$(CC) $(CFLAGS) $(OPTFLAGS) -MMD -c $< -o $@
 
 %.bin: %.rsp
 	@echo "Assembling: $<"

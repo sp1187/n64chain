@@ -1,0 +1,76 @@
+#
+# cubedemo/src/graphics.rsp: RSP microcode for cubedemo.
+#
+# n64chain: A (free) open-source N64 development toolchain.
+# Copyright 2014 Tyler J. Stachecki <tstache1@binghamton.edu>
+#
+# This file is subject to the terms and conditions defined in
+# 'LICENSE', which is part of this source code package.
+#
+
+#
+# Thanks to krom (PeterLemon) for providing a starting point
+# for drawing primitives on the VR4300. I simply transcribed
+# his code onto the RSP as a starting point. :)
+#
+
+.text
+
+  ;
+  ; Configure the RDP.
+  ;
+
+  # Set Scissor(XH=0, YH=0, XL=320, YL=240, f=0, o=0)
+  lui $1, 0x2D00
+  sw $1, 0x000($0)
+  lui $1, 0x0050
+  addiu $1, $1, 0x03C0
+  sw $1, 0x004($0)
+
+  # Set Other Modes(cycle_type = fill)
+  lui $1, 0x2F30
+  sw $1, 0x008($0)
+  sw $0, 0x00C($0)
+
+  # Set Color Image(size=16b, width=319, DRAM adrs=0x100000)
+  lui $1, 0x3F10
+  addiu $1, $1, 0x013F
+  sw $1, 0x010($0)
+  lui $1, 0x0010
+  sw $1, 0x014($0)
+
+  # Set Fill Color(Packed Color=0xFF01FF01)
+  lui $1, 0x3700
+  sw $1, 0x018($0)
+  lui $1, 0xFF01
+  ori $1, $1, 0xFF01
+  sw $1, 0x01C($0)
+
+  ;
+  ; Draw a primitive, then sync.
+  ;
+
+  # Fill Rectangle(XL=319, YL=239, XH=0, YH=0)
+  lui $1, 0x364F
+  addiu $1, $1, 0xC3BC
+  sw $1, 0x020($0)
+  sw $0, 0x024($0)
+
+  # Sync Full
+  lui $1, 0x2900
+  sw $1, 0x028($0)
+  sw $0, 0x02C($0)
+
+  # Push the display list over the XBUS.
+  ori $1, $0, 0x0002
+  mtc0 $1, $11
+  mtc0 $0, $8
+  addiu $1, $0, 0x0030
+  mtc0 $1, $9
+
+  ;
+  ; Raise a SP interrupt; we're done.
+  ;
+
+  break
+

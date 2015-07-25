@@ -1,0 +1,43 @@
+#
+# This is a test.
+#
+
+/*
+
+  Multiline comment whatup.
+
+*/
+
+/*noerr*/
+
+/* tricked
+   u */
+
+;
+;  Weee.
+;
+
+.data
+.dmax 0
+.byte 0x1c
+
+.text
+vnop
+add $30,$0,$1
+addu $31,$29,$23
+and $sp,$2,$5
+nor $5,$7,$9
+or $ra,$5,$7
+sllv $2,$3,$4
+slt $0,$4,$5
+sltu $4,$5,$6
+srav $5,$6,$7
+srlv $6,$7,$8
+sub $8,$9,$10
+subu $9,$10,$11
+xor $10,$11,$12
+mfc0 $1,$2
+mtc0 $2,$3
+break
+nop
+

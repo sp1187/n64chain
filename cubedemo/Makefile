@@ -54,14 +54,12 @@ $(ROM_NAME).elf: libn64 $(OBJFILES)
 	$(CC) $(CFLAGS) $(OPTFLAGS) -Wl,-Map=$(ROM_NAME).map -nostdlib \
 		-T../libn64/rom.ld -o $@ $(OBJFILES) -L../libn64 -ln64
 
+src/graphics.o: src/graphics.S src/graphics.bin
+	@echo "Assembling: $<"
+
 #
 # Generic compilation/assembly targets.
 #
-
-src/graphics.o: src/graphics.S src/graphics.bin
-	@echo "Assembling: $<"
-	@$(CC) $(CFLAGS) $(OPTFLAGS) -MMD -c $< -o $@
-
 %.o: %.S
 	@echo "Assembling: $<"
 	@$(CC) $(CFLAGS) $(OPTFLAGS) -MMD -c $< -o $@

@@ -20,11 +20,11 @@
   ; Configure the RDP.
   ;
 
-  # Set Scissor(XH=0, YH=0, XL=320, YL=240, f=0, o=0)
+  # Set Scissor(XH=0, YH=0, XL=319, YL=239, f=0, o=0)
   lui $1, 0x2D00
   sw $1, 0x000($0)
-  lui $1, 0x0050
-  ori $1, $1, 0x03C0
+  lui $1, 0x004F
+  ori $1, $1, 0xC3BC
   sw $1, 0x004($0)
 
   # Set Other Modes(cycle_type = fill)

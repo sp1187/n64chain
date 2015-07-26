@@ -24,7 +24,7 @@
 #define BUFFER_SIZE       0x00008000
 
 static inline uint32_t btol(const uint8_t *b) {
-	return
+  return
     (b[0] << 24) |
     (b[1] << 16) |
     (b[2] <<  8) |
@@ -32,14 +32,14 @@ static inline uint32_t btol(const uint8_t *b) {
 }
 
 static inline void ltob(uint32_t l, uint8_t *b) {
-	b[0] = l >> 24;
-	b[1] = l >> 16;
-	b[2] = l >>  8;
-	b[3] = l >>  0;
+  b[0] = l >> 24;
+  b[1] = l >> 16;
+  b[2] = l >>  8;
+  b[3] = l >>  0;
 }
 
 static inline uint32_t rol(uint32_t i, unsigned b) {
-	return (i << b) | (i >> (32 - b));
+  return (i << b) | (i >> (32 - b));
 }
 
 static int calculate_crc(const uint8_t *buffer, uint32_t crc[2]);
@@ -49,112 +49,112 @@ static int safe_fread(uint8_t *buffer, size_t len, FILE *f);
 static int safe_fwrite(const uint8_t *buffer, size_t len, FILE *f);
 
 static int calculate_crc(const uint8_t *buffer, uint32_t crc[2]) {
-	uint8_t *crc_buffer;
-	unsigned l, offs;
+  uint8_t *crc_buffer;
+  unsigned l, offs;
 
-	uint32_t t1, t2, t3, t4, t5, t6;
-	uint32_t c1, k1, k2;
+  uint32_t t1, t2, t3, t4, t5, t6;
+  uint32_t c1, k1, k2;
 
   if ((crc_buffer = malloc(BUFFER_SIZE)) == NULL) {
     perror("malloc");
 
-		return 1;
+    return 1;
   }
 
-	t1 = t2 = t3 = CIC_NUS6102_SEED;
-	t4 = t5 = t6 = CIC_NUS6102_SEED;
+  t1 = t2 = t3 = CIC_NUS6102_SEED;
+  t4 = t5 = t6 = CIC_NUS6102_SEED;
 
-	l = CHECKSUM_LENGTH;
-	offs = CHECKSUM_START;
+  l = CHECKSUM_LENGTH;
+  offs = CHECKSUM_START;
 
-	while (1) {
+  while (1) {
     unsigned i, n;
 
-		n = (BUFFER_SIZE < l) ? BUFFER_SIZE : l;
-		memcpy(crc_buffer, buffer + offs, n);
-		offs += n;
+    n = (BUFFER_SIZE < l) ? BUFFER_SIZE : l;
+    memcpy(crc_buffer, buffer + offs, n);
+    offs += n;
 
-		for (i = 0; i < n; i += 4) {
-			c1 = btol(crc_buffer + i);
-			k1 = t6 + c1;
+    for (i = 0; i < n; i += 4) {
+      c1 = btol(crc_buffer + i);
+      k1 = t6 + c1;
 
-			if (k1 < t6)
-				t4++;
+      if (k1 < t6)
+        t4++;
 
-			t6 = k1;
-			t3 ^= c1;
-			k2 = c1 & 0x1F;
-			k1 = rol(c1, k2);
-			t5 += k1;
+      t6 = k1;
+      t3 ^= c1;
+      k2 = c1 & 0x1F;
+      k1 = rol(c1, k2);
+      t5 += k1;
 
-			if (c1 < t2)
-				t2 ^= k1;
-			else
-				t2 ^= t6 ^ c1;
+      if (c1 < t2)
+        t2 ^= k1;
+      else
+        t2 ^= t6 ^ c1;
 
-			t1 += c1 ^ t5;
-		}
+      t1 += c1 ^ t5;
+    }
 
-		l -= n;
+    l -= n;
 
-		if (!l)
-			break;
-	}
+    if (!l)
+      break;
+  }
 
-	crc[0] = t6 ^ t4 ^ t3;
-	crc[1] = t5 ^ t2 ^ t1;
+  crc[0] = t6 ^ t4 ^ t3;
+  crc[1] = t5 ^ t2 ^ t1;
 
   free(crc_buffer);
-	return 0;
+  return 0;
 }
 
 int main(int argc, const char *argv[]) {
-	size_t min_sz = 2 * 1024 * 1024;
+  size_t min_sz = 2 * 1024 * 1024;
 
-	uint8_t *buffer, out[8];
-	uint32_t crc[2], c_crc[2];
+  uint8_t *buffer, out[8];
+  uint32_t crc[2], c_crc[2];
 
   long fsz;
-	int status;
-	FILE *f;
+  int status;
+  FILE *f;
 
-	// Process arguments.
-	if (argc != 3) {
-		printf("Usage: %s <header> <filename>\n", argv[0]);
-		return EXIT_SUCCESS;
-	}
+  // Process arguments.
+  if (argc != 3) {
+    printf("Usage: %s <header> <filename>\n", argv[0]);
+    return EXIT_SUCCESS;
+  }
 
-	// Open header, read it into memory, close.
-	if ((buffer = calloc(min_sz, 1)) == NULL) {
-		perror("calloc");
+  // Open header, read it into memory, close.
+  if ((buffer = calloc(min_sz, 1)) == NULL) {
+    perror("calloc");
 
-		return EXIT_FAILURE;
-	}
+    return EXIT_FAILURE;
+  }
 
-	if ((f = fopen(argv[1], "rb")) == NULL) {
-		perror("fopen");
-		free(buffer);
+  if ((f = fopen(argv[1], "rb")) == NULL) {
+    perror("fopen");
+    free(buffer);
 
-		return EXIT_FAILURE;
-	}
+    return EXIT_FAILURE;
+  }
 
   if (safe_fread(buffer, CHECKSUM_START, f)) {
     fprintf(stderr, "Unable to read contents of: %s.\n", argv[1]);
-		free(buffer);
-		fclose(f);
+    free(buffer);
+    fclose(f);
 
-		return EXIT_FAILURE;
-	}
+    return EXIT_FAILURE;
+  }
 
-	fclose(f);
+  fclose(f);
 
-	// Open ROM contents, read it into memory, compute CRC, close.
-	if ((f = fopen(argv[2], "rb")) == NULL) {
-		perror("fopen");
-		free(buffer);
+  // Open ROM contents, read it into memory, compute CRC, close.
+  if ((f = fopen(argv[2], "rb")) == NULL) {
+    perror("fopen");
+    free(buffer);
 
-		return EXIT_FAILURE;
-	}
+    return EXIT_FAILURE;
+  }
 
   if ((fsz = get_file_length_and_rewind(f)) < 0) {
     fprintf(stderr, "Unable to determine file size of: %s.\n", argv[2]);
@@ -174,60 +174,60 @@ int main(int argc, const char *argv[]) {
     return EXIT_FAILURE;
   }
 
-	// Read current CRC, compute correct one.
-	c_crc[0] = btol(buffer + CRC_OFFSET);
-	c_crc[1] = btol(buffer + CRC_OFFSET + 4);
-	status = calculate_crc(buffer, crc);
+  // Read current CRC, compute correct one.
+  c_crc[0] = btol(buffer + CRC_OFFSET);
+  c_crc[1] = btol(buffer + CRC_OFFSET + 4);
+  status = calculate_crc(buffer, crc);
 
-	fclose(f);
+  fclose(f);
 
-	if (status) {
-		free(buffer);
+  if (status) {
+    free(buffer);
 
-		return EXIT_FAILURE;
-	}
+    return EXIT_FAILURE;
+  }
 
-	if ((c_crc[0] == crc[0] && c_crc[1] == crc[1]) && ((size_t) fsz >= min_sz))
-		return EXIT_SUCCESS;
+  if ((c_crc[0] == crc[0] && c_crc[1] == crc[1]) && ((size_t) fsz >= min_sz))
+    return EXIT_SUCCESS;
 
-	// CRCs don't match; update the ROM.
-	ltob(crc[0], out);
-	ltob(crc[1], out + 4);
+  // CRCs don't match; update the ROM.
+  ltob(crc[0], out);
+  ltob(crc[1], out + 4);
 
-	if ((f = fopen(argv[2], "rb+")) == NULL) {
-		perror("fopen");
-		free(buffer);
+  if ((f = fopen(argv[2], "rb+")) == NULL) {
+    perror("fopen");
+    free(buffer);
 
-		return EXIT_FAILURE;
-	}
+    return EXIT_FAILURE;
+  }
 
-	// Ensure the file is at least min_sz in length, write the CRC.
+  // Ensure the file is at least min_sz in length, write the CRC.
   if (safe_fwrite(buffer, min_sz, f)) {
     fprintf(stderr, "Unable to write contents to: %s.\n", argv[2]);
-		free(buffer);
-		fclose(f);
+    free(buffer);
+    fclose(f);
 
-		return EXIT_FAILURE;
-	}
+    return EXIT_FAILURE;
+  }
 
-	free(buffer);
+  free(buffer);
 
-	if (fseek(f, CRC_OFFSET, SEEK_SET)) {
-		perror("fseek");
-		fclose(f);
+  if (fseek(f, CRC_OFFSET, SEEK_SET)) {
+    perror("fseek");
+    fclose(f);
 
-		return EXIT_FAILURE;
-	}
+    return EXIT_FAILURE;
+  }
 
   if (safe_fwrite(out, sizeof(out), f)) {
     fprintf(stderr, "Unable to write CRC to: %s.\n", argv[2]);
-		fclose(f);
+    fclose(f);
 
-		return EXIT_FAILURE;
-	}
+    return EXIT_FAILURE;
+  }
 
-	fclose(f);
-	return 0;
+  fclose(f);
+  return 0;
 }
 
 long get_file_length_and_rewind(FILE *f) {

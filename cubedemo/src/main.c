@@ -36,11 +36,11 @@ static vi_state_t vi_state = {
 	0x00000002, // intr
 	0x00000000, // current
 	0x03E52239, // burst
-	0x0000020C, // v_sync
+	0x0000020D, // v_sync
 	0x00000C15, // h_sync
 	0x0C150C15, // leap
 	0x006C02EC, // h_start
-	0x002301FD, // v_start
+	0x002501FF, // v_start
 	0x000E0204, // v_burst
 	0x00000200, // x_scale
 	0x00000400, // y_scale

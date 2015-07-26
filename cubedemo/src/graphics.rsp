@@ -24,7 +24,7 @@
   lui $1, 0x2D00
   sw $1, 0x000($0)
   lui $1, 0x0050
-  addiu $1, $1, 0x03C0
+  ori $1, $1, 0x03C0
   sw $1, 0x004($0)
 
   # Set Other Modes(cycle_type = fill)
@@ -34,7 +34,7 @@
 
   # Set Color Image(size=16b, width=319, DRAM adrs=0x100000)
   lui $1, 0x3F10
-  addiu $1, $1, 0x013F
+  ori $1, $1, 0x013F
   sw $1, 0x010($0)
   lui $1, 0x0010
   sw $1, 0x014($0)
@@ -52,7 +52,7 @@
 
   # Fill Rectangle(XL=319, YL=239, XH=0, YH=0)
   lui $1, 0x364F
-  addiu $1, $1, 0xC3BC
+  ori $1, $1, 0xC3BC
   sw $1, 0x020($0)
   sw $0, 0x024($0)
 
@@ -65,7 +65,7 @@
   ori $1, $0, 0x0002
   mtc0 $1, $11
   mtc0 $0, $8
-  addiu $1, $0, 0x0030
+  ori $1, $0, 0x0030
   mtc0 $1, $9
 
   ;

@@ -13,6 +13,7 @@
 #include "parser.h"
 #include "lexer.h"
 #include "rspasm.h"
+#include "symbols.h"
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -34,20 +35,41 @@ int assemble(FILE *in, FILE *out) {
     return EXIT_FAILURE;
   }
 
+  rspasmset_extra(&rspasm, scanner);
+  memset(&rspasm, 0x00, sizeof(rspasm));
+
   rspasm.dhead = 0x0000;
   rspasm.ihead = 0x1000;
-  rspasm.in_text = true;
-  memset(rspasm.data, 0, sizeof(rspasm.data));
 
-  rspasmset_extra(&rspasm, scanner);
+  rspasm.first_pass = true;
+  rspasm.in_text = true;
 
   buf = rspasm_create_buffer(in, YY_BUF_SIZE, scanner);
   rspasm_switch_to_buffer(buf, scanner);
   status = rspasmparse(scanner);
 
+  // First pass was successful, go for a second.
   if (status != EXIT_FAILURE) {
-    if (safe_fwrite(out, rspasm.data, sizeof(rspasm.data)))
+    rspasm.dhead = 0x0000;
+    rspasm.ihead = 0x1000;
+
+    rspasm.first_pass = false;
+    rspasm.in_text = true;
+
+    if (rspasm_do_symbols_pass(&rspasm))
       status = EXIT_FAILURE;
+
+    else {
+      rewind(in);
+      status = rspasmparse(scanner);
+
+      if (status != EXIT_FAILURE) {
+        if (safe_fwrite(out, rspasm.data, sizeof(rspasm.data)))
+          status = EXIT_FAILURE;
+      }
+
+      rspasm_free_symbols(&rspasm);
+    }
   }
 
   rspasm_delete_buffer(buf, scanner);

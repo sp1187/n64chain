@@ -15,6 +15,7 @@
 #
 
 .text
+entry:
 
   ;
   ; Configure the RDP.
@@ -22,29 +23,29 @@
 
   # Set Scissor(XH=0, YH=0, XL=319, YL=239, f=0, o=0)
   lui $1, 0x2D00
-  sw $1, 0x000($0)
+  sw $1, dlist+0x000($0)
   lui $1, 0x004F
   ori $1, $1, 0xC3BC
-  sw $1, 0x004($0)
+  sw $1, dlist+0x004($0)
 
   # Set Other Modes(cycle_type = fill)
   lui $1, 0x2F30
-  sw $1, 0x008($0)
-  sw $0, 0x00C($0)
+  sw $1, dlist+0x008($0)
+  sw $0, dlist+0x00C($0)
 
   # Set Color Image(size=16b, width=319, DRAM adrs=0x100000)
   lui $1, 0x3F10
   ori $1, $1, 0x013F
-  sw $1, 0x010($0)
+  sw $1, dlist+0x010($0)
   lui $1, 0x0010
-  sw $1, 0x014($0)
+  sw $1, dlist+0x014($0)
 
   # Set Fill Color(Packed Color=0xFF01FF01)
   lui $1, 0x3700
-  sw $1, 0x018($0)
+  sw $1, dlist+0x018($0)
   lui $1, 0xFF01
   ori $1, $1, 0xFF01
-  sw $1, 0x01C($0)
+  sw $1, dlist+0x01C($0)
 
   ;
   ; Draw a primitive, then sync.
@@ -53,19 +54,19 @@
   # Fill Rectangle(XL=319, YL=239, XH=0, YH=0)
   lui $1, 0x364F
   ori $1, $1, 0xC3BC
-  sw $1, 0x020($0)
-  sw $0, 0x024($0)
+  sw $1, dlist+0x020($0)
+  sw $0, dlist+0x024($0)
 
   # Sync Full
   lui $1, 0x2900
-  sw $1, 0x028($0)
-  sw $0, 0x02C($0)
+  sw $1, dlist+0x028($0)
+  sw $0, dlist+0x02C($0)
 
   # Push the display list over the XBUS.
   ori $1, $0, 0x0002
   mtc0 $1, $11
-  mtc0 $0, $8
-  ori $1, $0, 0x0030
+  mtc0 $0, $8 # $0 = dlist+0x000
+  ori $1, $0, dlist+0x030
   mtc0 $1, $9
 
   ;
@@ -73,4 +74,7 @@
   ;
 
   break
+
+.data
+dlist:
 

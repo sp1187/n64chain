@@ -14,12 +14,21 @@
 #include <stdint.h>
 #include <stdio.h>
 
+// Forward declarations.
+struct rspasm_symbol;
+
 struct rspasm {
+  struct rspasm_symbol *symbols;
+  size_t num_symbols, max_symbols;
+
+  // Binary data.
   size_t ihead;
   size_t dhead;
-  bool in_text;
-
   uint8_t data[0x2000];
+
+  // State.
+  bool first_pass;
+  bool in_text;
 };
 
 #endif

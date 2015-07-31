@@ -12,13 +12,14 @@ BISON = bison
 FLEX = flex
 
 CFLAGS = -Wall -Wextra -Wno-unused-parameter -pedantic -std=c99 -I. -D_POSIX_C_SOURCE
-OPTFLAGS = -O2
+OPTFLAGS = -ggdb3 -g3
 
 CFILES = \
 	emitter.c \
 	lexer.c \
 	main.c \
-	parser.c
+	parser.c \
+	symbols.c
 
 OBJFILES = \
 	$(CFILES:.c=.o)

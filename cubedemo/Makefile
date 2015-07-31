@@ -68,6 +68,7 @@ src/graphics.o: src/graphics.S src/graphics.bin
 
 %.bin: %.rsp
 	@echo "Assembling: $<"
+	@$(MAKE) -sC $(shell pwd)/../rspasm
 	@$(RSPASM) -o $@ $<
 
 .PHONY: libn64

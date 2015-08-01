@@ -2,7 +2,7 @@
 set -e
 
 #
-# tools/build-linux-toolchain.sh: Linux toolchain build script.
+# tools/build-win64-toolchain.sh: Win64 toolchain build script.
 #
 # n64chain: A (free) open-source N64 development toolchain.
 # Copyright 2014-15 Tyler J. Stachecki <tstache1@binghamton.edu>
@@ -13,6 +13,10 @@ set -e
 
 BINUTILS="ftp://ftp.gnu.org/gnu/binutils/binutils-2.25.tar.bz2"
 GCC="ftp://ftp.gnu.org/gnu/gcc/gcc-5.2.0/gcc-5.2.0.tar.bz2"
+GMP="ftp://ftp.gnu.org/gnu/gmp/gmp-6.0.0a.tar.bz2"
+MAKE="ftp://ftp.gnu.org/gnu/make/make-4.1.tar.bz2"
+MPC="ftp://ftp.gnu.org/gnu/mpc/mpc-1.0.3.tar.gz"
+MPFR="ftp://ftp.gnu.org/gnu/mpfr/mpfr-3.1.3.tar.bz2"
 
 export PATH="${PATH}:${SCRIPT_DIR}/bin"
 
@@ -33,13 +37,15 @@ fi
 if [ ! -f stamps/binutils-configure ]; then
   pushd binutils-build
   ../binutils-source/configure \
+    --build=x86_64-linux-gnu \
+    --host=x86_64-w64-mingw32 \
     --prefix="${SCRIPT_DIR}" \
     --with-lib-path="${SCRIPT_DIR}/lib" \
     --target=mips64-elf --with-arch=vr4300 \
     --enable-64-bit-bfd \
-    --enable-gold \
     --enable-plugins \
     --enable-static \
+    --disable-gold \
     --disable-multilib \
     --disable-nls \
     --disable-shared \
@@ -65,6 +71,21 @@ if [ ! -f stamps/binutils-install ]; then
   touch stamps/binutils-install
 fi
 
+if [ ! -f stamps/gmp-download ]; then
+  wget "${GMP}" -O "tarballs/$(basename ${GMP})"
+  touch stamps/gmp-download
+fi
+
+if [ ! -f stamps/mpfr-download ]; then
+  wget "${MPFR}" -O "tarballs/$(basename ${MPFR})"
+  touch stamps/mpfr-download
+fi
+
+if [ ! -f stamps/mpc-download ]; then
+  wget "${MPC}" -O "tarballs/$(basename ${MPC})"
+  touch stamps/mpc-download
+fi
+
 if [ ! -f stamps/gcc-download ]; then
   wget "${GCC}" -O "tarballs/$(basename ${GCC})"
   touch stamps/gcc-download
@@ -76,16 +97,37 @@ if [ ! -f stamps/gcc-extract ]; then
   touch stamps/gcc-extract
 fi
 
+if [ ! -f stamps/gmp-extract ]; then
+  mkdir -p gcc-source/gmp
+  tar -xf tarballs/$(basename ${GMP}) -C gcc-source/gmp --strip 1
+  touch stamps/gmp-extract
+fi
+
+if [ ! -f stamps/mpfr-extract ]; then
+  mkdir -p gcc-source/mpfr
+  tar -xf tarballs/$(basename ${MPFR}) -C gcc-source/mpfr --strip 1
+  touch stamps/mpfr-extract
+fi
+
+if [ ! -f stamps/mpc-extract ]; then
+  mkdir -p gcc-source/mpc
+  tar -xf tarballs/$(basename ${MPC}) -C gcc-source/mpc --strip 1
+  touch stamps/mpc-extract
+fi
+
 if [ ! -f stamps/gcc-configure ]; then
   pushd gcc-build
   ../gcc-source/configure \
+    --build=x86_64-linux-gnu \
+    --host=x86_64-w64-mingw32 \
     --prefix="${SCRIPT_DIR}" \
     --target=mips64-elf --with-arch=vr4300 \
     --enable-languages=c --without-headers --with-newlib \
-    --with-gnu-as=${SCRIPT_DIR}/bin/mips64-elf-as \
-    --with-gnu-ld=${SCRIPT_DIR}/bin/mips64-elf-ld \
+    --with-gnu-as=${SCRIPT_DIR}/bin/mips64-elf-as.exe \
+    --with-gnu-ld=${SCRIPT_DIR}/bin/mips64-elf-ld.exe \
     --enable-checking=release \
     --disable-decimal-float \
+    --disable-gold \
     --disable-libatomic \
     --disable-libgomp \
     --disable-libitm \
@@ -93,14 +135,15 @@ if [ ! -f stamps/gcc-configure ]; then
     --disable-libquadmath-support \
     --disable-libsanitizer \
     --disable-libssp \
+    --disable-libunwind-exceptions \
+    --disable-libvtv \
     --disable-multilib \
     --disable-nls \
     --disable-shared \
     --disable-threads \
     --disable-win32-registry \
-    --enable-gold \
     --enable-lto \
-    --enable-plugin \
+    --enable-plugin-ld \
     --enable-static \
     --without-included-gettext
   popd
@@ -110,7 +153,7 @@ fi
 
 if [ ! -f stamps/gcc-build ]; then
   pushd gcc-build
-  make
+  make all-gcc
   popd
 
   touch stamps/gcc-build
@@ -118,22 +161,70 @@ fi
 
 if [ ! -f stamps/gcc-install ]; then
   pushd gcc-build
-  make install
+  make install-gcc
   popd
 
-  # build-win32-toolchain.sh needs this; the cross-compiler build
-  # will look for mips64-elf-cc and we only have mips64-elf-gcc.
+  # While not necessary, this is still a good idea.
   pushd "${SCRIPT_DIR}/bin"
-  ln -sfv mips64-elf-{gcc,cc}
+  cp mips64-elf-{gcc,cc}.exe
   popd
 
   touch stamps/gcc-install
 fi
 
+if [ ! -f stamps/make-download ]; then
+  wget "${MAKE}" -O "tarballs/$(basename ${MAKE})"
+  touch stamps/make-download
+fi
+
+if [ ! -f stamps/make-extract ]; then
+  mkdir -p make-{build,source}
+  tar -xf tarballs/$(basename ${MAKE}) -C make-source --strip 1
+  touch stamps/make-extract
+fi
+
+if [ ! -f stamps/make-configure ]; then
+  pushd make-build
+  ../make-source/configure \
+    --build=x86_64-linux-gnu \
+    --host=x86_64-w64-mingw32 \
+    --prefix="${SCRIPT_DIR}" \
+    --disable-largefile \
+    --disable-nls \
+    --disable-rpath
+  popd
+
+  touch stamps/make-configure
+fi
+
+if [ ! -f stamps/make-build ]; then
+  pushd make-build
+  make
+  popd
+
+  touch stamps/make-build
+fi
+
+if [ ! -f stamps/make-install ]; then
+  pushd make-build
+  make install
+  popd
+
+  touch stamps/make-install
+fi
+
 if [ ! -f stamps/checksum-build ]; then
-  cc -Wall -Wextra -pedantic -std=c99 -static checksum.c -o bin/checksum
+  x86_64-w64-mingw32-gcc -Wall -Wextra -pedantic -std=c99 -static -O2 checksum.c -o bin/checksum.exe
 
   touch stamps/checksum-build
+fi
+
+if [ ! -f stamps/rspasm-build ]; then
+  pushd "${SCRIPT_DIR}/../rspasm"
+
+  make clean
+  CC=x86_64-w64-mingw32-gcc RSPASM_LIBS="-lws2_32" make
+  cp rspasm ${SCRIPT_DIR}/bin/rspasm.exe
 fi
 
 rm -rf "${SCRIPT_DIR}"/../tools/tarballs

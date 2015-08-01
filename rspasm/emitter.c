@@ -8,9 +8,14 @@
 // 'LICENSE', which is part of this source code package.
 //
 
+#ifdef _WIN32
+#include <winsock2.h>
+#else
+#include <arpa/inet.h>
+#endif
+
 #include "emitter.h"
 #include "rspasm.h"
-#include <arpa/inet.h>
 #include <limits.h>
 #include <stdint.h>
 #include <string.h>
@@ -261,7 +266,7 @@ int rspasm_emit_word(struct rspasm *rspasm, const YYLTYPE *loc, long int word) {
   if (rspasm_emit_data_common(rspasm, loc, sizeof(uword)))
     return -1;
 
-  if (word > UINT32_MAX || word < INT32_MIN) {
+  if ((unsigned long int) word > UINT32_MAX || word < INT32_MIN) {
     fprintf(stderr, "line %d: .word: "
       "Value is out of range.\n", loc->first_line);
 

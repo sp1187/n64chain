@@ -8,18 +8,28 @@
 # 'LICENSE', which is part of this source code package.
 #
 
-AS = $(shell pwd)/../tools/bin/mips64-elf-as
-AR = $(shell pwd)/../tools/bin/mips64-elf-gcc-ar
-CC = $(shell pwd)/../tools/bin/mips64-elf-gcc
+ifdef SystemRoot
+FIXPATH = $(subst /,\,$1)
+RM = del /Q
+else
+FIXPATH = $1
+RM = rm -f
+endif
+
+AS = $(call FIXPATH,$(CURDIR)/../tools/bin/mips64-elf-as)
+AR = $(call FIXPATH,$(CURDIR)/../tools/bin/mips64-elf-gcc-ar)
+CC = $(call FIXPATH,$(CURDIR)/../tools/bin/mips64-elf-gcc)
 
 CFLAGS = -Wall -Wextra -pedantic -std=c99 -I. -Iinclude
 OPTFLAGS = -Os -march=vr4300 -flto -ffat-lto-objects \
 	-mgpopt -G8 -mno-extern-sdata
 
-ASMFILES = \
-	libc/crt0.S
+ASMFILES = $(call FIXPATH,\
+	libc/crt0.S \
+)
 
-CFILES =
+CFILES = $(call FIXPATH,\
+)
 
 OBJFILES = \
 	$(ASMFILES:.S=.o) \
@@ -31,18 +41,18 @@ DEPFILES = $(OBJFILES:.o=.d)
 # Primary targets.
 #
 libn64.a: $(OBJFILES)
-	@echo "Building: libn64/$@"
+	@echo $(call FIXPATH,"Building: libn64/$@")
 	@$(AR) rcs $@ $^
 
 #
 # Generic compilation/assembly targets.
 #
 %.o: %.S
-	@echo "Assembling: libn64/$<"
+	@echo $(call FIXPATH,"Assembling: libn64/$<")
 	@$(CC) $(CFLAGS) $(OPTFLAGS) -MMD -c $< -o $@
 
 %.o: %.c
-	@echo "Compiling: libn64/$<"
+	@echo $(call FIXPATH,"Compiling: libn64/$<")
 	@$(CC) $(CFLAGS) $(OPTFLAGS) -MMD -c $< -o $@
 
 #

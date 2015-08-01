@@ -8,6 +8,14 @@
 # 'LICENSE', which is part of this source code package.
 #
 
+ifdef SystemRoot
+FIXPATH = $(subst /,\,$1)
+RM = del /Q
+else
+FIXPATH = $1
+RM = rm -f
+endif
+
 BISON = bison
 FLEX = flex
 
@@ -29,22 +37,22 @@ DEPFILES = $(OBJFILES:.o=.d)
 all: rspasm
 
 rspasm: $(OBJFILES)
-	@echo "Linking: $@"
-	@$(CC) $(CFLAGS) $(OPTFLAGS) $^ -o $@
+	@echo $(call FIXPATH,"Linking: rspasm/$@")
+	@$(CC) -static $(CFLAGS) $(OPTFLAGS) $^ $(RSPASM_LIBS) -o $@
 
 parser.c: parser.y
-	@echo "Generating: rspasm/$@"
+	@echo $(call FIXPATH,"Generating: rspasm/$@")
 	@$(BISON) -d -o $@ $<
 
 lexer.c: lexer.l parser.c
-	@echo "Generating: rspasm/$@"
+	@echo $(call FIXPATH,"Generating: rspasm/$@")
 	@$(FLEX) --bison-bridge --yylineno --header-file=lexer.h -o $@ $<
 
 #
 # Generic compilation/assembly targets.
 #
 %.o: %.c parser.c lexer.c
-	@echo "Compiling: rspasm/$<"
+	@echo $(call FIXPATH,"Compiling: rspasm/$<")
 	@$(CC) $(CFLAGS) $(OPTFLAGS) -MMD -c $< -o $@
 
 #

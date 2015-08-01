@@ -8,29 +8,41 @@
 # 'LICENSE', which is part of this source code package.
 #
 
-ROM_NAME = $(notdir $(shell pwd))
+ifdef SystemRoot
+FIXPATH = $(subst /,\,$1)
+RM = del /Q
+else
+FIXPATH = $1
+RM = rm -f
+endif
 
-AS = $(shell pwd)/../tools/bin/mips64-elf-as
-AR = $(shell pwd)/../tools/bin/mips64-elf-gcc-ar
-CC = $(shell pwd)/../tools/bin/mips64-elf-gcc
-OBJCOPY = $(shell pwd)/../tools/bin/mips64-elf-objcopy
+ROM_NAME = $(notdir $(CURDIR))
 
-CHECKSUM = $(shell pwd)/../tools/bin/checksum
-RSPASM = $(shell pwd)/../rspasm/rspasm
+AS = $(call FIXPATH,$(CURDIR)/../tools/bin/mips64-elf-as)
+AR = $(call FIXPATH,$(CURDIR)/../tools/bin/mips64-elf-gcc-ar)
+CC = $(call FIXPATH,$(CURDIR)/../tools/bin/mips64-elf-gcc)
+MAKE = $(call FIXPATH,$(CURDIR)/../tools/bin/make)
+OBJCOPY = $(call FIXPATH,$(CURDIR)/../tools/bin/mips64-elf-objcopy)
+
+CHECKSUM = $(call FIXPATH,$(CURDIR)/../tools/bin/checksum)
+RSPASM = $(call FIXPATH,$(CURDIR)/../tools/bin/rspasm)
 
 CFLAGS = -Wall -Wextra -pedantic -std=c99 \
 	-I../libn64/include -I../libn64 -I.
 OPTFLAGS = -Os -march=vr4300 -flto -ffat-lto-objects \
 	-mgpopt -G8 -mno-extern-sdata
 
-ASMFILES = \
-	src/graphics.S
+ASMFILES = $(call FIXPATH,\
+	src/graphics.S \
+)
 
-CFILES = \
-	src/main.c
+CFILES = $(call FIXPATH,\
+	src/main.c \
+)
 
-UCODES = \
-	src/graphics.rsp
+UCODES = $(call FIXPATH,\
+	src/graphics.rsp \
+)
 
 OBJFILES = \
 	$(ASMFILES:.S=.o) \
@@ -45,42 +57,42 @@ DEPFILES = $(OBJFILES:.o=.d)
 all: $(ROM_NAME).z64
 
 $(ROM_NAME).z64: $(ROM_NAME).elf
-	@echo "Building: $@"
+	@echo $(call FIXPATH,"Building: $(ROM_NAME)/$@")
 	@$(OBJCOPY) -O binary $< $@
-	@$(CHECKSUM) ../libn64/header.bin $@
+	@$(CHECKSUM) $(call FIXPATH,../libn64/header.bin) $@
 
 $(ROM_NAME).elf: libn64 $(OBJFILES)
-	@echo "Building: $@"
+	@echo $(call FIXPATH,"Building: $(ROM_NAME)/$@")
 	@$(CC) $(CFLAGS) $(OPTFLAGS) -Wl,-Map=$(ROM_NAME).map -nostdlib \
-		-T../libn64/rom.ld -o $@ $(OBJFILES) -L../libn64 -ln64
+		-T$(call FIXPATH,../libn64/rom.ld) -o $@ $(OBJFILES) \
+		-L$(call FIXPATH,../libn64) -ln64
 
 #
 # Generic compilation/assembly targets.
 #
-src/graphics.o: src/graphics.S src/graphics.bin
+$(call FIXPATH,src/graphics.o): $(call FIXPATH,src/graphics.S) $(call FIXPATH,src/graphics.bin)
 %.o: %.S
-	@echo "Assembling: $<"
+	@echo $(call FIXPATH,"Assembling: $(ROM_NAME)/$<")
 	@$(CC) $(CFLAGS) $(OPTFLAGS) -MMD -c $< -o $@
 
 %.o: %.c
-	@echo "Compiling: $<"
+	@echo $(call FIXPATH,"Compiling: $(ROM_NAME)/$<")
 	@$(CC) $(CFLAGS) $(OPTFLAGS) -MMD -c $< -o $@
 
 %.bin: %.rsp
-	@echo "Assembling: $<"
-	@$(MAKE) -sC $(shell pwd)/../rspasm
+	@echo $(call FIXPATH,"Assembling: $(ROM_NAME)/$<")
 	@$(RSPASM) -o $@ $<
 
 .PHONY: libn64
 libn64:
-	@$(MAKE) -sC ../libn64
+	@$(MAKE) -sC $(call FIXPATH,../libn64)
 
 #
 # Clean project target.
 #
 .PHONY: clean
 clean:
-	@echo "Cleaning..."
+	@echo "Cleaning $(ROM_NAME)..."
 	@$(RM) $(ROM_NAME).map $(ROM_NAME).elf $(ROM_NAME).z64 \
 		$(DEPFILES) $(OBJFILES) $(UCODEBINS)
 

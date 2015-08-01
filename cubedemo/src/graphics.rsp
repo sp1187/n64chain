@@ -21,6 +21,10 @@ entry:
   ; Configure the RDP.
   ;
 
+  # Enable XBUS (as opposed to the RDRAM FIFO).
+  ori $1, $0, 0x0002
+  mtc0 $1, $11
+
   # Set Scissor(XH=0, YH=0, XL=319, YL=239, f=0, o=0)
   lui $1, 0x2D00
   sw $1, dlist+0x000($0)
@@ -63,8 +67,6 @@ entry:
   sw $0, dlist+0x02C($0)
 
   # Push the display list over the XBUS.
-  ori $1, $0, 0x0002
-  mtc0 $1, $11
   mtc0 $0, $8 # $0 = dlist+0x000
   ori $1, $0, dlist+0x030
   mtc0 $1, $9

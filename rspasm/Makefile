@@ -12,7 +12,7 @@ BISON = bison
 FLEX = flex
 
 CFLAGS = -Wall -Wextra -Wno-unused-parameter -pedantic -std=c99 -I. -D_POSIX_C_SOURCE
-OPTFLAGS = -ggdb3 -g3
+OPTFLAGS = -O2
 
 CFILES = \
 	emitter.c \

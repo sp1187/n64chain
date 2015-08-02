@@ -14,5 +14,7 @@
 
 extern uint8_t *rsp_ucode;
 
+extern void __interrupt_handler(uint32_t cause);
+
 #endif
 

@@ -9,12 +9,12 @@
 //
 
 #include "src/graphics.h"
+#include <rcp/mi.h>
 #include <rcp/rsp.h>
 #include <rcp/vi.h>
 #include <stddef.h>
 #include <stdint.h>
-
-extern volatile uint32_t __rsp;
+#include <vr4300/cp0.h>
 
 //
 // Application layout:
@@ -85,7 +85,24 @@ int main() {
   rsp_set_pc(0x0000);
   rsp_set_status(RSP_STATUS_CLEAR_HALT);
 
+  // Configure and enable interrupts.
+  mi_set_intr_mask(
+    MI_INTR_CLEAR_SP |
+    MI_INTR_CLEAR_SI |
+    MI_INTR_CLEAR_AI |
+    MI_INTR_CLEAR_PI |
+    MI_INTR_CLEAR_DP |
+    MI_INTR_SET_VI
+  );
+
+  vr4300_install_interrupt_handler((uintptr_t) &__interrupt_handler);
+  vr4300_cp0_enable_interrupts();
+
   // We'll just spin indefinitely after returning...
+  //
+  // Occasionally, a VI interrupt will be raised, and
+  // __interrupt_handler in src/graphics.S will be
+  // invoked... but other than that, we're done.
   return 0;
 }
 

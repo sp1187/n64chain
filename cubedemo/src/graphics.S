@@ -26,12 +26,16 @@ rsp_ucode:
 .global __interrupt_handler
 .type __interrupt_handler, @function
 __interrupt_handler:
+  lui $k0, 0xA440
 
-  # Set VI origin to the second frame.
+  # Clear the active VI interrupt.
+  lw $k1, 0x0010($k0)
+  sw $k1, 0x0010($k0)
+
+  # Set VI origin to the next frame.
   #
   # If VI_ORIGIN_REG is 0x0010 0000, set it to 0x0020 0000.
   # If VI_ORIGIN_REG is 0x0020 0000, set it to 0x0010 0000.
-  lui $k0, 0xA440
   lw $k1, 0x0004($k0)
   srl $k1, $k1, 0x15
 
@@ -44,8 +48,10 @@ __interrupt_handler_continue:
   sll $k1, $k1, 0x14
   sw $k1, 0x0004($k0)
 
-  # Clear the pending VI interrupt.
-  sw $0, 0x0010($k0)
+  # Tell MI to reset???
+  lui $k0, 0xA430
+  ori $k1, $0, 0x0595
+  sw $k1, 0x000C($k0)
 
   # Return from exception.
   eret

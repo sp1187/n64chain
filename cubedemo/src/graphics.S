@@ -45,10 +45,9 @@ __interrupt_handler_continue:
   sw $k1, 0x0004($k0)
 
   # Clear the pending VI interrupt.
-  lw $k1, 0x0010($k0)
-  sw $k1, 0x0010($k0)
+  sw $0, 0x0010($k0)
 
-  # Clear exception level and return.
+  # Return from exception.
   eret
 
 .size __interrupt_handler,.-__interrupt_handler

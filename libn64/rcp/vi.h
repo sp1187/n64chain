@@ -13,20 +13,20 @@
 #include <stddef.h>
 
 typedef struct vi_state_t {
-	uint32_t status;
-	uint32_t origin;
-	uint32_t width;
-	uint32_t intr;
-	uint32_t current;
-	uint32_t burst;
-	uint32_t v_sync;
-	uint32_t h_sync;
-	uint32_t leap;
-	uint32_t h_start;
-	uint32_t v_start;
-	uint32_t v_burst;
-	uint32_t x_scale;
-	uint32_t y_scale;
+  uint32_t status;
+  uint32_t origin;
+  uint32_t width;
+  uint32_t intr;
+  uint32_t current;
+  uint32_t burst;
+  uint32_t v_sync;
+  uint32_t h_sync;
+  uint32_t leap;
+  uint32_t h_start;
+  uint32_t v_start;
+  uint32_t v_burst;
+  uint32_t x_scale;
+  uint32_t y_scale;
 } vi_state_t __attribute__ ((aligned (8)));
 
 //
